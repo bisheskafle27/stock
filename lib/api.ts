@@ -28,3 +28,51 @@ export const fetchStockData = async (
     { date: "2026-04-23", price: 170.5, volume: 2800000 },
   ];
 };
+
+export interface PortfolioStock {
+  id: string;
+  ticker: string;
+  companyName: string;
+  quantity: number;
+  purchasePrice: number;
+  currentPrice: number;
+}
+
+export const fetchPortfolio = async (): Promise<PortfolioStock[]> => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  return [
+    {
+      id: "1",
+      ticker: "AAPL",
+      companyName: "Apple Inc.",
+      quantity: 15,
+      purchasePrice: 145.0,
+      currentPrice: 170.5,
+    },
+    {
+      id: "2",
+      ticker: "MSFT",
+      companyName: "Microsoft Corp.",
+      quantity: 10,
+      purchasePrice: 310.0,
+      currentPrice: 380.2,
+    },
+    {
+      id: "3",
+      ticker: "GOOGL",
+      companyName: "Alphabet Inc.",
+      quantity: 20,
+      purchasePrice: 135.5,
+      currentPrice: 145.0,
+    },
+    {
+      id: "4",
+      ticker: "AMZN",
+      companyName: "Amazon.com, Inc.",
+      quantity: 25,
+      purchasePrice: 140.0,
+      currentPrice: 138.5,
+    },
+  ];
+};
