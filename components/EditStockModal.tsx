@@ -1,15 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { PortfolioStock } from "../lib/api";
 import { usePortfolioStore } from "../store/usePortfolioStore";
 
-interface AddStockModalProps {
+interface EditStockModalProps {
   isOpen: boolean;
   onClose: () => void;
+  stock: PortfolioStock | null;
 }
 
-export default function AddStockModal({ isOpen, onClose }: AddStockModalProps) {
-  const addStock = usePortfolioStore((state) => state.addStock);
+export default function EditStockModal({
+  isOpen,
+  onClose,
+  stock,
+}: EditStockModalProps) {
+  const updateStock = usePortfolioStore((state) => state.updateStock);
   const [ticker, setTicker] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -17,24 +23,34 @@ export default function AddStockModal({ isOpen, onClose }: AddStockModalProps) {
   const [purchaseDate, setPurchaseDate] = useState("");
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    if (stock) {
+      setTicker(stock.ticker);
+      setCompanyName(stock.companyName);
+      setQuantity(stock.quantity.toString());
+      setPurchasePrice(stock.purchasePrice.toString());
+      setPurchaseDate(stock.purchaseDate || "");
+    }
+  }, [stock]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!stock) return;
     setError("");
 
     const qty = Number(quantity);
     const price = Number(purchasePrice);
 
     if (!ticker || !companyName || !qty || !price) {
-      setError("Please verify all fields.");
+      setError("Please fill out all fields.");
       return;
     }
-
     if (qty <= 0 || price <= 0) {
-      setError("Values must be greater than 0");
+      setError("Quantity and Price must be positive amounts.");
       return;
     }
 
-    addStock({
+    updateStock(stock.id, {
       ticker: ticker.toUpperCase(),
       companyName,
       quantity: qty,
@@ -42,20 +58,15 @@ export default function AddStockModal({ isOpen, onClose }: AddStockModalProps) {
       purchaseDate,
     });
 
-    setTicker("");
-    setCompanyName("");
-    setQuantity("");
-    setPurchasePrice("");
-    setPurchaseDate("");
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !stock) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4">Add Stock to Portfolio</h2>
+        <h2 className="text-xl font-bold mb-4">Edit Stock in Portfolio</h2>
         {error && <div className="text-red-600 text-sm mb-2">{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -134,7 +145,7 @@ export default function AddStockModal({ isOpen, onClose }: AddStockModalProps) {
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              Add Stock
+              Save Changes
             </button>
           </div>
         </form>

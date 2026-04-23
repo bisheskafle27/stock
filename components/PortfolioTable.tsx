@@ -1,14 +1,17 @@
 "use client";
 
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useEffect } from "react";
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getSortedRowModel,
   useReactTable,
+  SortingState,
 } from "@tanstack/react-table";
-import { fetchPortfolio, PortfolioStock } from "../lib/api";
+import { PortfolioStock } from "../lib/api";
+import EditStockModal from "./EditStockModal";
+import { usePortfolioStore } from "../store/usePortfolioStore";
 
 const columnHelper = createColumnHelper<PortfolioStock>();
 
@@ -67,18 +70,61 @@ const columns = [
 ];
 
 export default function PortfolioTable() {
-  const { data: portfolio = [], isLoading } = useQuery({
-    queryKey: ["portfolio"],
-    queryFn: fetchPortfolio,
-  });
+  const [editingStock, setEditingStock] = useState<PortfolioStock | null>(null);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const { portfolio, deleteStock } = usePortfolioStore();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const tableColumns = React.useMemo(
+    () => [
+      ...columns,
+      columnHelper.display({
+        id: "actions",
+        header: "Actions",
+        cell: (info) => {
+          const stock = info.row.original;
+          return (
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setEditingStock(stock)}
+                className="text-blue-600 hover:text-blue-900 font-medium text-sm"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => {
+                  if (
+                    confirm(`Are you sure you want to delete ${stock.ticker}?`)
+                  ) {
+                    deleteStock(stock.id);
+                  }
+                }}
+                className="text-red-600 hover:text-red-900 font-medium text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          );
+        },
+      }),
+    ],
+    [deleteStock],
+  );
 
   const table = useReactTable({
     data: portfolio,
-    columns,
+    columns: tableColumns,
+    state: { sorting },
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
-  if (isLoading) {
+  if (!mounted) {
     return (
       <div className="p-10 text-center text-gray-600">
         Loading portfolio data...
@@ -95,14 +141,21 @@ export default function PortfolioTable() {
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                  className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 cursor-pointer select-none hover:bg-gray-100"
+                  onClick={header.column.getToggleSortingHandler()}
                 >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
+                  {header.isPlaceholder ? null : (
+                    <div className="flex items-center gap-1">
+                      {flexRender(
                         header.column.columnDef.header,
                         header.getContext(),
                       )}
+                      {{
+                        asc: " 🔼",
+                        desc: " 🔽",
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </div>
+                  )}
                 </th>
               ))}
             </tr>
@@ -127,6 +180,13 @@ export default function PortfolioTable() {
         <div className="text-center py-10 bg-white border-t border-gray-200 text-gray-500">
           No stocks found in your portfolio.
         </div>
+      )}
+      {editingStock && (
+        <EditStockModal
+          isOpen={true}
+          onClose={() => setEditingStock(null)}
+          stock={editingStock}
+        />
       )}
     </div>
   );

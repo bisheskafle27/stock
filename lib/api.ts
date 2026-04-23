@@ -95,3 +95,22 @@ export const addPortfolioStock = async (
   portfolioData.push(newStock);
   return newStock;
 };
+
+export const updatePortfolioStock = async (
+  id: string,
+  updatedStock: Partial<PortfolioStock>,
+): Promise<PortfolioStock> => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const index = portfolioData.findIndex((s) => s.id === id);
+  if (index !== -1) {
+    portfolioData[index] = { ...portfolioData[index], ...updatedStock };
+    return portfolioData[index];
+  }
+  throw new Error("Stock not found");
+};
+
+export const deletePortfolioStock = async (id: string): Promise<string> => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  portfolioData = portfolioData.filter((s) => s.id !== id);
+  return id;
+};
