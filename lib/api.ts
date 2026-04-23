@@ -36,43 +36,62 @@ export interface PortfolioStock {
   quantity: number;
   purchasePrice: number;
   currentPrice: number;
+  purchaseDate?: string;
 }
+
+let portfolioData: PortfolioStock[] = [
+  {
+    id: "1",
+    ticker: "AAPL",
+    companyName: "Apple Inc.",
+    quantity: 15,
+    purchasePrice: 145.0,
+    currentPrice: 170.5,
+    purchaseDate: "2026-01-10",
+  },
+  {
+    id: "2",
+    ticker: "MSFT",
+    companyName: "Microsoft Corp.",
+    quantity: 10,
+    purchasePrice: 310.0,
+    currentPrice: 380.2,
+    purchaseDate: "2026-02-15",
+  },
+  {
+    id: "3",
+    ticker: "GOOGL",
+    companyName: "Alphabet Inc.",
+    quantity: 20,
+    purchasePrice: 135.5,
+    currentPrice: 145.0,
+    purchaseDate: "2026-03-20",
+  },
+  {
+    id: "4",
+    ticker: "AMZN",
+    companyName: "Amazon.com, Inc.",
+    quantity: 25,
+    purchasePrice: 140.0,
+    currentPrice: 138.5,
+    purchaseDate: "2026-04-05",
+  },
+];
 
 export const fetchPortfolio = async (): Promise<PortfolioStock[]> => {
   await new Promise((resolve) => setTimeout(resolve, 500));
+  return [...portfolioData];
+};
 
-  return [
-    {
-      id: "1",
-      ticker: "AAPL",
-      companyName: "Apple Inc.",
-      quantity: 15,
-      purchasePrice: 145.0,
-      currentPrice: 170.5,
-    },
-    {
-      id: "2",
-      ticker: "MSFT",
-      companyName: "Microsoft Corp.",
-      quantity: 10,
-      purchasePrice: 310.0,
-      currentPrice: 380.2,
-    },
-    {
-      id: "3",
-      ticker: "GOOGL",
-      companyName: "Alphabet Inc.",
-      quantity: 20,
-      purchasePrice: 135.5,
-      currentPrice: 145.0,
-    },
-    {
-      id: "4",
-      ticker: "AMZN",
-      companyName: "Amazon.com, Inc.",
-      quantity: 25,
-      purchasePrice: 140.0,
-      currentPrice: 138.5,
-    },
-  ];
+export const addPortfolioStock = async (
+  stock: Omit<PortfolioStock, "id" | "currentPrice">,
+): Promise<PortfolioStock> => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const newStock: PortfolioStock = {
+    ...stock,
+    id: Math.random().toString(36).substring(2, 9),
+    currentPrice: stock.purchasePrice * (1 + (Math.random() * 0.1 - 0.05)), // Mock current price based on purchase price +/- 5%
+  };
+  portfolioData.push(newStock);
+  return newStock;
 };
